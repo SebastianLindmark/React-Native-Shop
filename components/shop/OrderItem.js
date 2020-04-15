@@ -7,6 +7,8 @@ import Card from '../UI/Card';
 const OrderItem = props => {
 
     const [showDetails, setShowDetails] = useState(false);
+    
+
 
     return <Card style={styles.orderItem}>
 
@@ -23,7 +25,7 @@ const OrderItem = props => {
 
         {showDetails && <View style={styles.detailItems}>
             
-            {props.items.items.map(cartItem => <CartItem key={cartItem.productId} quantity={cartItem.quantity} amount={cartItem.sum} title={cartItem.productTitle} />)}
+            {props.items.map(cartItem => <CartItem key={cartItem.productId} quantity={cartItem.quantity} amount={cartItem.sum} title={cartItem.productTitle} />)}
 
             </View>}
     </Card>

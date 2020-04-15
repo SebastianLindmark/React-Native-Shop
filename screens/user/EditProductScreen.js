@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, Text, TextInput, StyleSheet, Platform, Alert } from 'react-native';
+import { View, ScrollView, Text, TextInput, StyleSheet, Platform, Alert, ActivityIndicator } from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons'
 import HeaderButton from '../../components/UI/HeaderButton'
 import { useSelector, useDispatch } from 'react-redux';
 
-
-
 import * as productActions from '../../store/actions/products';
+import Colors from '../../constants/Colors';
 
 const EditProductScreen = props => {
 
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const prodId = props.navigation.getParam('productId');
     const editedProduct = useSelector(state => state.products.userProducts.find(prod => prod.id === prodId))
@@ -22,21 +24,50 @@ const EditProductScreen = props => {
 
     const dispatch = useDispatch();
 
-    const submitHandler = useCallback(() => {
-        if (editedProduct) {
-            dispatch(productActions.updateProduct(prodId, title, description, imageUrl))
-        } else {
-            dispatch(productActions.createProduct(title, description, imageUrl, +price));
-        }
-        
-        props.navigation.goBack();
+    useEffect(() => {
 
-    }, [dispatch, prodId, title, description, imageUrl, price]);
+        if (error) {
+            Alert.alert('An error occured', error, [{ text: 'Ok' }]);
+        }
+
+    }, [error])
+
+
+    const submitHandler = useCallback(async () => {
+
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            if (editedProduct) {
+                await dispatch(productActions.updateProduct(prodId, title, description, imageUrl))
+            } else {
+                await dispatch(productActions.createProduct(title, description, imageUrl, +price));
+            }
+
+            props.navigation.goBack();
+
+        } catch (err) {
+            setError(err.message);
+        }
+
+        setIsLoading(false);
+
+
+
+    }, [dispatch, prodId, title, description, imageUrl, price, setError, setIsLoading]);
 
 
     useEffect(() => {
         props.navigation.setParams({ 'submit': submitHandler })
     }, [submitHandler])
+
+
+    if (isLoading) {
+        return <View style={styles.centered}>
+            <ActivityIndicator size='large' color={Colors.primary} />
+        </View>
+    }
 
 
 
@@ -86,7 +117,11 @@ EditProductScreen.navigationOptions = navData => {
 }
 
 const styles = StyleSheet.create({
-
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
     form: {
         margin: 20
     },
